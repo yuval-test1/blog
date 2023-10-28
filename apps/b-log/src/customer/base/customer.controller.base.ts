@@ -21,11 +21,9 @@ import * as defaultAuthGuard from "../../auth/defaultAuth.guard";
 import { CustomerService } from "../customer.service";
 import { AclValidateRequestInterceptor } from "../../interceptors/aclValidateRequest.interceptor";
 import { AclFilterResponseInterceptor } from "../../interceptors/aclFilterResponse.interceptor";
-import { CustomerCreateInput } from "./CustomerCreateInput";
-import { Customer } from "./Customer";
-import { CustomerFindManyArgs } from "./CustomerFindManyArgs";
 import { CustomerWhereUniqueInput } from "./CustomerWhereUniqueInput";
 import { CustomerUpdateInput } from "./CustomerUpdateInput";
+import { Customer } from "./Customer";
 import { OrderFindManyArgs } from "../../order/base/OrderFindManyArgs";
 import { Order } from "../../order/base/Order";
 import { OrderWhereUniqueInput } from "../../order/base/OrderWhereUniqueInput";
@@ -37,122 +35,6 @@ export class CustomerControllerBase {
     protected readonly service: CustomerService,
     protected readonly rolesBuilder: nestAccessControl.RolesBuilder
   ) {}
-  @common.UseInterceptors(AclValidateRequestInterceptor)
-  @common.Post()
-  @swagger.ApiCreatedResponse({ type: Customer })
-  @nestAccessControl.UseRoles({
-    resource: "Customer",
-    action: "create",
-    possession: "any",
-  })
-  @swagger.ApiForbiddenResponse({
-    type: errors.ForbiddenException,
-  })
-  async createCustomer(
-    @common.Body() data: CustomerCreateInput
-  ): Promise<Customer> {
-    return await this.service.create({
-      data: {
-        ...data,
-
-        address: data.address
-          ? {
-              connect: data.address,
-            }
-          : undefined,
-      },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-
-        address: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-  }
-
-  @common.UseInterceptors(AclFilterResponseInterceptor)
-  @common.Get()
-  @swagger.ApiOkResponse({ type: [Customer] })
-  @ApiNestedQuery(CustomerFindManyArgs)
-  @nestAccessControl.UseRoles({
-    resource: "Customer",
-    action: "read",
-    possession: "any",
-  })
-  @swagger.ApiForbiddenResponse({
-    type: errors.ForbiddenException,
-  })
-  async Customers(@common.Req() request: Request): Promise<Customer[]> {
-    const args = plainToClass(CustomerFindManyArgs, request.query);
-    return this.service.findMany({
-      ...args,
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-
-        address: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-  }
-
-  @common.UseInterceptors(AclFilterResponseInterceptor)
-  @common.Get("/:id")
-  @swagger.ApiOkResponse({ type: Customer })
-  @swagger.ApiNotFoundResponse({ type: errors.NotFoundException })
-  @nestAccessControl.UseRoles({
-    resource: "Customer",
-    action: "read",
-    possession: "own",
-  })
-  @swagger.ApiForbiddenResponse({
-    type: errors.ForbiddenException,
-  })
-  async Customer(
-    @common.Param() params: CustomerWhereUniqueInput
-  ): Promise<Customer | null> {
-    const result = await this.service.findOne({
-      where: params,
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-
-        address: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-    if (result === null) {
-      throw new errors.NotFoundException(
-        `No resource was found for ${JSON.stringify(params)}`
-      );
-    }
-    return result;
-  }
 
   @common.UseInterceptors(AclValidateRequestInterceptor)
   @common.Patch("/:id")
